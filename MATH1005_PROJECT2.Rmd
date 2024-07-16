@@ -1,0 +1,220 @@
+---
+title: "Shark Control Program Catch Analysis"
+author: "Syed Ahmad Sabaat 510415790"
+subtitle: "Project 2"
+date: "University of Sydney | MATH1005 | LAB Class 06 353 Carslaw Wednesday 2 pm"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    self_contained: yes
+    theme: flatly
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+---
+
+<br>
+
+# Executive Summary
+- This report's objective is to investigate patterns in shark catch counts according to species, location, month, and length found in data from the Shark Control Program.
+
+- The main discoveries are:
+
+1. The Tiger Shark is the most caught shark species in the program with a total of 207 catches.
+2. The median length of Tiger Shark is 2.37 m.
+3. The maximum number of sharks are caught in the month of February and in the town of Townsville.
+
+<br>
+
+# Full Report
+
+## Initial Data Analysis (IDA)
+
+- The data came from the Agriculture & Fisheries Department of the State of Queensland. The dataset contains data from each day of 2016 and was collected as part of the Queensland Shark Control Program, a Government initiative to prevent shark bites.
+- The data is valid because it came from an official Government source
+
+- Possible issues include:
+1. Human error while reporting the shark characteristics like length, latitude, longitude, etc.
+2. The water temperature might differ at different levels of the ocean.
+
+- Potential stakeholders include marine biologists, government officials, tourists, etc.
+
+- Each row represents each shark caught and its respective data.
+
+- Each column represents fields of data about the shark caught. These are Species Name, Date, Area, Location, Latitude, Longitude, Length(m), Water Temperature(C), Month, Day of Week.
+
+- The key variables are:
+  1. Species, a character variable, holds the value of one of the different types of sharks.
+  2. Length, a floating point variable, holds the value of the length of the shark in meters.
+  3. Month, a character variable, holds the value of the month that the shark was caught in.
+  4. Area, a character variable, holds the value of the name of the area where the shark was caught.
+```{r}
+## read in data
+Sharks = read.csv("sharks.csv")
+
+Species = Sharks$Species.Name
+
+Species_Length = Sharks$Length..m.
+
+Month = Sharks$Month
+
+Area = Sharks$Area
+
+Length = Sharks$Length..m.
+
+Temperature = Sharks$Water.Temp..C.
+
+```
+
+Classification of variables
+```{r}
+
+## show classification of variables
+str(Sharks)
+
+```
+
+Dimensions of data
+```{r}
+
+## show the dimensions of data
+dim(Sharks)
+
+```
+
+<br>
+
+## Research Question 1: What is the most caught shark species?
+
+We aim to analyse that which shark species was caught the most in the Shark Control Program in 2016. We achieve this by producing an interactive bar plot which represents the number of sharks caught for each species.
+
+```{r}
+## write code here
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+
+g<- ggplot(Sharks, aes(x=Species )) + geom_bar(fill="tomato3") + theme(axis.text.x = element_text(angle=65, vjust = 0.5)) + scale_fill_brewer() + ylab("Count") + ggtitle("Shark catch statistics by species")
+
+ggplotly(g)
+
+```
+
+**Summary:** On producing this bar plot, we observe that TIGER SHARK is the most caught shark species with a catch count of 207 followed by followed by BULL WHALER at 91 and COMMON BLACKTIP WHALER at 39.
+
+We now aim to find the median length of the top three most caught species and compare them with each other.
+
+```{r}
+## write code here
+
+median(Sharks$Length..m.[Sharks$Species.Name == "TIGER SHARK"])
+median(Sharks$Length..m.[Sharks$Species.Name == "BULL WHALER"])
+median(Sharks$Length..m.[Sharks$Species.Name == "COMMON BLACKTIP WHALER"])
+
+
+```
+
+We can now compare the median length of the species using box plots.
+
+```{r}
+## write code here
+par(mfrow=c(1,3))
+
+## For TIGER SHARK
+boxplot(Sharks$Length..m.[Sharks$Species.Name == "TIGER SHARK"], col="orange",las=1,main = "TIGER SHARK", ylab = "Length")
+
+## For BULL WHALER
+boxplot(Sharks$Length..m.[Sharks$Species.Name == "BULL WHALER"], col="pink",las=1,main = "BULL WHALER", ylab = "Length")
+
+## For COMMON BLACKTIP WHALER
+boxplot(Sharks$Length..m.[Sharks$Species.Name == "COMMON BLACKTIP WHALER"], col="yellow",las=1,main = "COMMON BLACKTIP WHALER", ylab = "Length")
+
+```
+
+**Summary:** Of all the top three most caught species, TIGER SHARK has the highest median length of 2.37 m.
+
+
+<br>
+
+## Research Question 2: How does shark catch numbers vary by month and area?
+
+We want to figure out which month had the most sharks caught. For this, we create an interactive bar plot and sort the months based on the number of sharks caught in descending order.
+
+```{r}
+## write code here
+
+y<- ggplot(Sharks, aes(x=reorder(Month, Month, function(x) - length(x)))) + geom_bar(fill="dark blue") + xlab("Months") + ylab("Count") + ggtitle("Shark catch statistics by month")
+
+
+ggplotly(y)
+
+```
+
+**Summary:** Based on this bar plot, we can conclude that February had the highest number of shark catches, with a shark count of 70, followed by May and January. We can relate it with an ABC Science article titled, "Are we seeing more sharks than usual at this time of year?".
+
+We now want to find out the shark catch statistics by area using a similar approach.
+
+
+```{r}
+## write code here
+
+x <- ggplot(Sharks, aes(x = Area)) +geom_bar() + geom_bar(fill="green") +theme(axis.text.x = element_text(angle=65, vjust = 0.5)) + ggtitle("Shark catch statistics by area") + ylab("Count")
+
+ggplotly(x)
+
+```
+**Summary:** We can conclude that Townsville saw a maximum number of shark catches at a count of 112.
+
+
+## Hypothesis Test : Is there a correlation between the length of sharks and the water temperature they are caught in?
+
+
+- **Significance Level** : By convention, we use $\alpha = 0.05$.
+
+- **Limitations** : 
+1. The data might be inconsistent.
+2. The data might not be fully accurate.
+
+- **Hypothesis** : 
+
+$H_0:$ There is no correlation
+
+$H_A:$ There is a correlation.
+
+- **Assumptions** : For the Pearson's correlation test, we need to make the following assumptions:
+
+1. The two variables should be measured at the interval or ratio level.
+2. There should exist a linear relationship between the two variables.
+3. Both variables should be roughly normally distributed.
+4. Each observation in the dataset should have a pair of values.
+5. There should be no extreme outliers in the dataset.
+
+We now calculate the **p-value**:
+```{r}
+
+cor.test(Sharks$Length..m., Sharks$Water.Temp..C.)
+
+```
+
+**Conclusion:** As the **p-value** is 0.03124 which is less than 0.5 thus we reject the null hypothesis which means that the alternative hypothesis is true which states that there is a correlation between the length of the sharks caught and the temperature of the water.
+
+<br>
+
+# References
+
+Shark Control Program Shark Catch Statistics by year - 2001–2016 - Shark Control Program catch statistics - Open Data Portal | Queensland Government. (2016). Qld.gov.au. https://www.data.qld.gov.au/dataset/shark-control-program-shark-catch-statistics/resource/5c6be990-3938-4125-8cca-dac0cd734263
+
+Gary, S. (2010, November 4). Are we seeing more sharks than usual at this time of year? Www.abc.net.au. https://www.abc.net.au/science/articles/2010/11/04/3056893.htm
+
+Zach. (2021, November 17). The Five Assumptions for Pearson Correlation - Statology. Statology. https://www.statology.org/pearson-correlation-assumptions/
+
+
+
+
+
+
+
